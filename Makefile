@@ -5,4 +5,4 @@ buildDocker:
 	docker build -t placementlog-server .
 
 runDocker:
-	docker run -p 8080:8080 -v $(pwd)/.env:/app/.env placementlog-server
+	docker run -p 8080:8080 -v "$(shell pwd)/.env":/app/.env placementlog-server
