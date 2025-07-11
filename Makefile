@@ -2,8 +2,11 @@ IMAGE_NAME = varnit/placementlog-server
 IMAGE_TAG = latest
 CONTAINER_NAME = placementlog-container
 
-runServer:
-	go run ./cmd/main.go
+buildServer:
+	go build -o server ./cmd/main.go
+
+runServer: buildServer
+	./server
 
 buildDocker:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
