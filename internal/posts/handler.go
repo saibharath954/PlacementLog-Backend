@@ -28,10 +28,10 @@ func (h *PostsHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user ID from request context or query (you decide based on auth)
 	userId := r.Header.Get("X-User-ID")
+
 	if userId == "" {
-		utils.WriteError(w, http.ErrNoCookie) // Or custom error
+		utils.WriteError(w, http.ErrNoCookie)
 		return
 	}
 
@@ -46,7 +46,6 @@ func (h *PostsHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
-	// Assume ?id=post-id format for simplicity (or use mux vars if using chi/gorilla/mux)
 	query := r.URL.Query()
 	postId := query.Get("id")
 

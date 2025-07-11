@@ -7,7 +7,7 @@ import (
 	"github.com/varnit-ta/PlacementLog/cmd/server"
 )
 
-const port = ":4000"
+const port = ":8080"
 
 func main() {
 	app, err := server.InitApp()
