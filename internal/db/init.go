@@ -10,11 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type DBConnection struct {
-	db *sql.DB
-}
-
-func InitDatabse() (*DBConnection, error) {
+func InitDatabse() (*sql.DB, error) {
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -35,7 +31,5 @@ func InitDatabse() (*DBConnection, error) {
 
 	log.Println("Connected to the database")
 
-	return &DBConnection{
-		db: conn,
-	}, nil
+	return conn, nil
 }
