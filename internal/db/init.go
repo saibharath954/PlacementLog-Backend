@@ -11,11 +11,7 @@ import (
 )
 
 func InitDatabse() (*sql.DB, error) {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %v", err)
-	}
+	_ = godotenv.Load(".env")
 
 	dbUrl := os.Getenv("DB_URL")
 
