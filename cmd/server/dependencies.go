@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	adminauth "github.com/varnit-ta/PlacementLog/internal/adminAuth"
 	"github.com/varnit-ta/PlacementLog/internal/db"
 	"github.com/varnit-ta/PlacementLog/internal/posts"
 	userauth "github.com/varnit-ta/PlacementLog/internal/userAuth"
@@ -13,6 +14,7 @@ import (
 type App struct {
 	userAuthHandler *userauth.UserAuthHandler
 	postHandler     *posts.PostsHandler
+	adminHandler    *adminauth.AdminAuthHandler
 }
 
 func InitApp() (*App, error) {
@@ -30,9 +32,14 @@ func InitApp() (*App, error) {
 	postService := posts.NewPostsService(postRepo)
 	postHandler := posts.NewPostsHandler(postService)
 
+	adminRepo := adminauth.NewAdminRepo(db)
+	adminService := adminauth.NewAdminService(adminRepo)
+	adminHandler := adminauth.NewAdminAuthHandler(adminService)
+
 	return &App{
 		userAuthHandler: userAuthHandler,
 		postHandler:     postHandler,
+		adminHandler:    adminHandler,
 	}, nil
 }
 
@@ -58,6 +65,11 @@ func (a App) Routes() http.Handler {
 		r.Get("/posts", a.postHandler.GetAll)
 		r.Get("/posts/user", a.postHandler.GetByUser)
 		r.Delete("/posts", a.postHandler.DeletePost)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Post("/admin/login", a.adminHandler.Login)
+		r.Post("/admin/register", a.adminHandler.Register)
 	})
 
 	return r

@@ -22,3 +22,8 @@ type PostBody struct {
 	Role    string  `json:"role"`
 	Rounds  []Round `json:"rounds"`
 }
+
+type Admin struct {
+	ID       string
+	Username string
+}
