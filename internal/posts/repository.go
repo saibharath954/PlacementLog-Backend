@@ -19,7 +19,11 @@ func NewPostsRepo(db *sql.DB) *PostsRepo {
 }
 
 func (repo PostsRepo) GetAllPosts() ([]db.Post, error) {
-	query := `SELECT id, user_id, post_body FROM placement_log_posts;`
+	query := `
+		SELECT id, user_id, post_body 
+		FROM placement_log_posts
+		WHERE reviewed=true;
+	`
 
 	rows, err := repo.db.Query(query)
 
@@ -47,7 +51,10 @@ func (repo PostsRepo) GetPostsByUserId(userId string) ([]db.Post, error) {
 		return nil, fmt.Errorf("all fields are required")
 	}
 
-	query := `SELECT id, user_id, post_body FROM placement_log_posts WHERE user_id=$1;`
+	query := `
+		SELECT id, user_id, post_body 
+		FROM placement_log_posts 
+		WHERE user_id=$1 AND reviewed=true;`
 
 	rows, err := repo.db.Query(query, userId)
 
@@ -78,8 +85,8 @@ func (repo PostsRepo) AddPost(userId string, postBody json.RawMessage) (*db.Post
 	}
 
 	query := `
-		INSERT INTO placement_log_posts (user_id, post_body)
-		VALUES ($1, $2)
+		INSERT INTO placement_log_posts (user_id, post_body, reviewed)
+		VALUES ($1, $2, false)
 		RETURNING id;
 	`
 
