@@ -19,7 +19,7 @@ type Post struct {
 	ID       string          `json:"id"`
 	UserID   string          `json:"user_id"`
 	PostBody json.RawMessage `json:"post_body"`
-	Reviewed bool            `json:"reviewed,omitempty"`
+	Reviewed bool            `json:"reviewed"`
 }
 
 /*
