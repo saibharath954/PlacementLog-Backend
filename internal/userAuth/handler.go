@@ -26,8 +26,9 @@ type requestPayload struct {
 responsePayload represents the JSON response for successful authentication.
 */
 type responsePayload struct {
-	UserID string `json:"username"`
-	Token  string `json:"token"`
+	UserID   string `json:"userid"`
+	Username string `json:"username"`
+	Token    string `json:"token"`
 }
 
 /*
@@ -86,8 +87,9 @@ func (h *UserAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := responsePayload{
-		UserID: userId,
-		Token:  token,
+		UserID:   userId,
+		Username: payload.Username,
+		Token:    token,
 	}
 
 	utils.WriteJSON(w, resp, http.StatusOK)
@@ -134,8 +136,9 @@ func (h *UserAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := responsePayload{
-		UserID: userId,
-		Token:  token,
+		UserID:   userId,
+		Username: payload.Username,
+		Token:    token,
 	}
 
 	utils.WriteJSON(w, resp, http.StatusCreated)

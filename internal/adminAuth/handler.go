@@ -40,10 +40,12 @@ type loginRequest struct {
 
 /*
 responsePayload represents the JSON response for successful admin authentication.
+Returns both userid and username for better admin identification.
 */
 type responsePayload struct {
-	UserID string `json:"username"`
-	Token  string `json:"token"`
+	UserID   string `json:"userid"`
+	Username string `json:"username"`
+	Token    string `json:"token"`
 }
 
 /*
@@ -63,7 +65,8 @@ Request Body:
 Response (200 OK):
 
 	{
-	  "username": "admin_id",
+	  "userid": "admin_uuid",
+	  "username": "admin_username",
 	  "token": "jwt_token_here"
 	}
 
@@ -86,8 +89,9 @@ func (h AdminAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := responsePayload{
-		UserID: admin.ID,
-		Token:  token,
+		UserID:   admin.ID,
+		Username: admin.Username,
+		Token:    token,
 	}
 
 	utils.WriteJSON(w, resp, http.StatusOK)
@@ -114,7 +118,8 @@ Request Body:
 Response (201 Created):
 
 	{
-	  "username": "new_admin_id",
+	  "userid": "new_admin_uuid",
+	  "username": "new_admin_username",
 	  "token": "jwt_token_here"
 	}
 
@@ -151,8 +156,9 @@ func (h AdminAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := responsePayload{
-		UserID: admin.ID,
-		Token:  tokenStr,
+		UserID:   admin.ID,
+		Username: admin.Username,
+		Token:    tokenStr,
 	}
 
 	utils.WriteJSON(w, resp, http.StatusCreated)
