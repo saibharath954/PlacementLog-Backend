@@ -9,6 +9,7 @@ import (
 	"github.com/varnit-ta/PlacementLog/internal/db"
 	"github.com/varnit-ta/PlacementLog/internal/posts"
 	userauth "github.com/varnit-ta/PlacementLog/internal/userAuth"
+	"github.com/varnit-ta/PlacementLog/pkg/middleware"
 )
 
 type App struct {
@@ -55,21 +56,38 @@ func (a App) Routes() http.Handler {
 		MaxAge:           300,
 	}))
 
+	// Public routes (no authentication required)
 	r.Group(func(r chi.Router) {
 		r.Post("/auth/login", a.userAuthHandler.Login)
 		r.Post("/auth/register", a.userAuthHandler.Register)
-	})
-
-	r.Group(func(r chi.Router) {
-		r.Post("/posts", a.postHandler.AddPost)
-		r.Get("/posts", a.postHandler.GetAll)
-		r.Get("/posts/user", a.postHandler.GetByUser)
-		r.Delete("/posts", a.postHandler.DeletePost)
-	})
-
-	r.Group(func(r chi.Router) {
 		r.Post("/admin/login", a.adminHandler.Login)
+	})
+
+	// User authenticated routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.UserAuthMiddleware)
+
+		r.Post("/auth/logout", a.userAuthHandler.Logout)
+		r.Post("/posts", a.postHandler.AddPost)
+		r.Put("/posts", a.postHandler.UpdatePost)
+		r.Delete("/posts", a.postHandler.DeletePost)
+		r.Get("/posts/user", a.postHandler.GetByUser)
+	})
+
+	// Public routes for viewing approved posts
+	r.Group(func(r chi.Router) {
+		r.Get("/posts", a.postHandler.GetAll)
+	})
+
+	// Admin authenticated routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuthMiddleware)
+
+		r.Post("/admin/logout", a.adminHandler.Logout)
 		r.Post("/admin/register", a.adminHandler.Register)
+		r.Get("/admin/posts", a.postHandler.GetAllPostsForAdmin)
+		r.Put("/admin/posts/review", a.postHandler.ReviewPost)
+		r.Delete("/admin/posts", a.postHandler.DeletePostAsAdmin)
 	})
 
 	return r

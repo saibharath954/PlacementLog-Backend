@@ -9,24 +9,69 @@ import (
 	"github.com/varnit-ta/PlacementLog/pkg/utils"
 )
 
+/*
+AdminAuthHandler handles admin authentication HTTP requests.
+Provides endpoints for admin login, registration, and logout.
+*/
 type AdminAuthHandler struct {
 	service *AdminService
 }
 
+/*
+NewAdminAuthHandler creates a new AdminAuthHandler instance with the provided service.
+
+Parameters:
+- service: The admin authentication service
+
+Returns:
+- *AdminAuthHandler: A new handler instance
+*/
 func NewAdminAuthHandler(service *AdminService) *AdminAuthHandler {
 	return &AdminAuthHandler{service: service}
 }
 
+/*
+loginRequest represents the JSON payload for admin login and registration requests.
+*/
 type loginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+/*
+responsePayload represents the JSON response for successful admin authentication.
+*/
 type responsePayload struct {
 	UserID string `json:"username"`
 	Token  string `json:"token"`
 }
 
+/*
+Login handles admin login requests.
+Validates admin credentials and returns a JWT token upon successful authentication.
+
+HTTP Method: POST
+Endpoint: /admin/login
+
+Request Body:
+
+	{
+	  "username": "admin_username",
+	  "password": "admin_password"
+	}
+
+Response (200 OK):
+
+	{
+	  "username": "admin_id",
+	  "token": "jwt_token_here"
+	}
+
+Returns:
+- 200 OK: Successful login with token
+- 400 Bad Request: Invalid request format
+- 401 Unauthorized: Invalid credentials
+*/
 func (h AdminAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -48,6 +93,37 @@ func (h AdminAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, resp, http.StatusOK)
 }
 
+/*
+Register handles admin registration requests.
+Requires admin authentication to register new admins.
+Only existing admins can register new admin accounts.
+
+HTTP Method: POST
+Endpoint: /admin/register
+
+Headers Required:
+- Authorization: Bearer <admin_jwt_token>
+
+Request Body:
+
+	{
+	  "username": "new_admin_username",
+	  "password": "new_admin_password"
+	}
+
+Response (201 Created):
+
+	{
+	  "username": "new_admin_id",
+	  "token": "jwt_token_here"
+	}
+
+Returns:
+- 201 Created: Successful registration with token
+- 400 Bad Request: Invalid request format
+- 401 Unauthorized: Missing or invalid admin token
+- 409 Conflict: Username already exists
+*/
 func (h AdminAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
@@ -56,7 +132,7 @@ func (h AdminAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
-	_, err := jwt.ValidateJwtToken(token)
+	_, err := jwt.ValidateAdminToken(token)
 	if err != nil {
 		http.Error(w, "unauthorized: "+err.Error(), http.StatusUnauthorized)
 		return
@@ -80,4 +156,27 @@ func (h AdminAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, resp, http.StatusCreated)
+}
+
+/*
+Logout handles admin logout requests.
+For JWT tokens, logout is typically handled client-side by removing the token.
+This endpoint provides a standardized way to handle admin logout requests.
+
+HTTP Method: POST
+Endpoint: /admin/logout
+
+Headers Required:
+- Authorization: Bearer <admin_jwt_token>
+
+Response (200 OK):
+
+	{
+	  "message": "admin logged out successfully"
+	}
+
+Note: The client should remove the JWT token from local storage after calling this endpoint.
+*/
+func (h AdminAuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	utils.WriteJSON(w, map[string]string{"message": "admin logged out successfully"}, http.StatusOK)
 }
