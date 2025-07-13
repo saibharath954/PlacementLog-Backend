@@ -43,7 +43,7 @@ The function queries the database for posts where reviewed=true.
 */
 func (repo PostsRepo) GetAllPosts() ([]db.Post, error) {
 	query := `
-		SELECT id, user_id, post_body 
+		SELECT id, user_id, post_body, reviewed
 		FROM placement_log_posts
 		WHERE reviewed=true;
 	`
@@ -60,9 +60,11 @@ func (repo PostsRepo) GetAllPosts() ([]db.Post, error) {
 
 	for rows.Next() {
 		var p db.Post
-		if err := rows.Scan(&p.ID, &p.UserID, &p.PostBody); err != nil {
+		var reviewed bool
+		if err := rows.Scan(&p.ID, &p.UserID, &p.PostBody, &reviewed); err != nil {
 			return nil, fmt.Errorf("failed to scan posts: %v", err)
 		}
+		p.Reviewed = reviewed
 		posts = append(posts, p)
 	}
 
@@ -103,6 +105,7 @@ func (repo PostsRepo) GetAllPostsForAdmin() ([]db.Post, error) {
 		if err := rows.Scan(&p.ID, &p.UserID, &p.PostBody, &reviewed); err != nil {
 			return nil, fmt.Errorf("failed to scan posts: %v", err)
 		}
+		p.Reviewed = reviewed
 		posts = append(posts, p)
 	}
 
@@ -132,7 +135,7 @@ func (repo PostsRepo) GetPostsByUserId(userId string) ([]db.Post, error) {
 	}
 
 	query := `
-		SELECT id, user_id, post_body 
+		SELECT id, user_id, post_body, reviewed
 		FROM placement_log_posts 
 		WHERE user_id=$1 AND reviewed=true;`
 
@@ -148,11 +151,13 @@ func (repo PostsRepo) GetPostsByUserId(userId string) ([]db.Post, error) {
 
 	for rows.Next() {
 		var p db.Post
+		var reviewed bool
 
-		if err := rows.Scan(&p.ID, &p.UserID, &p.PostBody); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.PostBody, &reviewed); err != nil {
 			return nil, fmt.Errorf("failed to scan posts: %v", err)
 		}
 
+		p.Reviewed = reviewed
 		posts = append(posts, p)
 	}
 
@@ -188,22 +193,17 @@ func (repo PostsRepo) AddPost(userId string, postBody json.RawMessage) (*db.Post
 	query := `
 		INSERT INTO placement_log_posts (user_id, post_body, reviewed)
 		VALUES ($1, $2, false)
-		RETURNING id;
+		RETURNING id, user_id, post_body, reviewed;
 	`
 
-	var postId string
-
-	err := repo.db.QueryRow(query, userId, postBody).Scan(&postId)
+	var post db.Post
+	err := repo.db.QueryRow(query, userId, postBody).Scan(&post.ID, &post.UserID, &post.PostBody, &post.Reviewed)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to add post: %v", err)
 	}
 
-	return &db.Post{
-		ID:       postId,
-		UserID:   userId,
-		PostBody: postBody,
-	}, nil
+	return &post, nil
 }
 
 /*
@@ -240,11 +240,11 @@ func (repo PostsRepo) UpdatePost(postId string, userId string, postBody json.Raw
 		UPDATE placement_log_posts 
 		SET post_body = $1, reviewed = false
 		WHERE id = $2 AND user_id = $3
-		RETURNING id, user_id, post_body;
+		RETURNING id, user_id, post_body, reviewed;
 	`
 
 	var post db.Post
-	err := repo.db.QueryRow(query, postBody, postId, userId).Scan(&post.ID, &post.UserID, &post.PostBody)
+	err := repo.db.QueryRow(query, postBody, postId, userId).Scan(&post.ID, &post.UserID, &post.PostBody, &post.Reviewed)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("post not found or unauthorized")

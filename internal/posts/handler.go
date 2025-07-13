@@ -335,6 +335,7 @@ Returns:
 */
 func (h *PostsHandler) GetAllPostsForAdmin(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.srv.GetAllPostsForAdmin()
+
 	if err != nil {
 		utils.WriteError(w, err)
 		return

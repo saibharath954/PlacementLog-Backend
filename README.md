@@ -14,6 +14,7 @@ A Go-based backend API for the Placement Log application with JWT authentication
 
 - Go 1.21+
 - Git
+- PostgreSQL (for production)
 
 ## Setup
 
@@ -29,22 +30,27 @@ Create a `.env` file in the backend directory:
 # Required for JWT token generation
 SECRET=your-secure-secret-key-here
 
-# Optional: Database configuration
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_NAME=placementlog
-# DB_USER=postgres
-# DB_PASSWORD=password
+# Database configuration (required for production)
+DB_URL=postgres://username:password@localhost:5432/placementlog?sslmode=disable
 ```
 
 **Important**: The `SECRET` environment variable is **required** for JWT token generation. Without it, the server will generate malformed tokens that cause authentication errors.
 
-3. **Install dependencies**:
+3. **Set up database** (for production):
+```bash
+# Create database
+createdb placementlog
+
+# Apply schema
+psql -d placementlog -f schema.sql
+```
+
+4. **Install dependencies**:
 ```bash
 go mod download
 ```
 
-4. **Build and run the server**:
+5. **Build and run the server**:
 ```bash
 # Using Makefile
 make runServer
@@ -77,16 +83,33 @@ The server will start on `http://localhost:8080`
 - `PUT /admin/posts/review` - Review post (approve/reject)
 - `DELETE /admin/posts` - Delete post as admin
 
+## Response Format
+
+All API responses follow this format:
+```json
+{
+  "err": false,
+  "data": [
+    {
+      "id": "post-id",
+      "user_id": "user-id",
+      "post_body": { ... },
+      "reviewed": false
+    }
+  ]
+}
+```
+
+The `reviewed` field indicates whether a post has been approved by an admin:
+- `false`: Post needs admin review
+- `true`: Post has been approved and is visible to users
+
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SECRET` | Yes | JWT signing secret (must be set) |
-| `DB_HOST` | No | Database host |
-| `DB_PORT` | No | Database port |
-| `DB_NAME` | No | Database name |
-| `DB_USER` | No | Database user |
-| `DB_PASSWORD` | No | Database password |
+| `DB_URL` | Yes (production) | PostgreSQL connection string |
 
 ## Troubleshooting
 
