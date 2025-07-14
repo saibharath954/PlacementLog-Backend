@@ -1,168 +1,104 @@
-# Placement Log Backend
+# 🚀 PlacementLog Backend
 
-A Go-based backend API for the Placement Log application with JWT authentication, user management, and post review system.
+A Go-based backend API for the Placement Log platform with JWT authentication, role-based access, and an admin post review system.
 
-## Features
+---
 
-- **JWT Authentication**: Secure token-based authentication for users and admins
-- **Post Management**: CRUD operations for placement posts
-- **Admin Review System**: Admin approval workflow for posts
-- **Role-based Access**: Separate user and admin permissions
-- **RESTful API**: Clean REST API design
+## ✅ Features
 
-## Prerequisites
+- **JWT Authentication** for users and admins  
+- **Post Management** (CRUD for placement experiences)  
+- **Admin Review Workflow** for post approvals  
+- **Role-based Access Control**  
+- **RESTful API Design**
 
-- Go 1.21+
-- Git
-- PostgreSQL (for production)
+---
 
-## Setup
+## ⚙️ Prerequisites
 
-1. **Clone the repository** (if not already done):
+- Go 1.21+  
+- Git  
+- PostgreSQL
+
+---
+
+## 🛠️ Setup
+
+1. **Clone the repository**  
 ```bash
 git clone <repository-url>
 cd Backend
 ```
 
-2. **Set up environment variables**:
-Create a `.env` file in the backend directory:
-```bash
-# Required for JWT token generation
+2. **Configure Environment Variables** (`.env`)
+```env
 SECRET=your-secure-secret-key-here
-
-# Database configuration (required for production)
 DB_URL=postgres://username:password@localhost:5432/placementlog?sslmode=disable
 ```
 
-**Important**: The `SECRET` environment variable is **required** for JWT token generation. Without it, the server will generate malformed tokens that cause authentication errors.
-
-3. **Set up database** (for production):
+3. **Set up Database**  
 ```bash
-# Create database
 createdb placementlog
-
-# Apply schema
 psql -d placementlog -f schema.sql
 ```
 
-4. **Install dependencies**:
+4. **Install Dependencies**  
 ```bash
 go mod download
 ```
 
-5. **Build and run the server**:
+5. **Run the Server**  
 ```bash
-# Using Makefile
 make runServer
-
-# Or manually
-go build -o server ./cmd/main.go
-./server
+# or
+go run ./cmd/main.go
 ```
 
-The server will start on `http://localhost:8080`
+The server will start on:  
+`http://localhost:8080`
 
-## API Endpoints
+---
 
-### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `POST /auth/logout` - User logout
-- `POST /admin/login` - Admin login
-- `POST /admin/logout` - Admin logout
+## 🔌 API Overview
 
-### Posts (User)
-- `GET /posts` - Get all approved posts
-- `GET /posts/user` - Get user's posts
-- `POST /posts` - Create new post
-- `PUT /posts` - Update post
-- `DELETE /posts` - Delete post
+### 📟 Auth Endpoints
+- `POST /auth/login` – User login  
+- `POST /auth/register` – User registration  
+- `POST /admin/login` – Admin login  
 
-### Posts (Admin)
-- `GET /admin/posts` - Get all posts for review
-- `PUT /admin/posts/review` - Review post (approve/reject)
-- `DELETE /admin/posts` - Delete post as admin
+### ✍️ Post Endpoints
+- `GET /posts` – Get all approved posts  
+- `POST /posts` – Create new post  
+- `PUT /posts` – Update post  
+- `DELETE /posts` – Delete post  
 
-## Response Format
+### 🛡️ Admin Endpoints
+- `GET /admin/posts` – View all submitted posts  
+- `PUT /admin/posts/review` – Approve or reject a post  
+- `DELETE /admin/posts` – Delete post as admin  
 
-All API responses follow this format:
-```json
-{
-  "err": false,
-  "data": [
-    {
-      "id": "post-id",
-      "user_id": "user-id",
-      "post_body": { ... },
-      "reviewed": false
-    }
-  ]
-}
-```
+---
 
-The `reviewed` field indicates whether a post has been approved by an admin:
-- `false`: Post needs admin review
-- `true`: Post has been approved and is visible to users
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SECRET` | Yes | JWT signing secret (must be set) |
-| `DB_URL` | Yes (production) | PostgreSQL connection string |
-
-## Troubleshooting
-
-### "unauthorized: invalid token: token is malformed"
-
-This error occurs when the `SECRET` environment variable is not set or is empty. The JWT library requires a secret key to sign tokens.
-
-**Solution**: Set the `SECRET` environment variable:
-```bash
-export SECRET=your-secure-secret-key-here
-```
-
-Or create a `.env` file:
-```bash
-echo "SECRET=your-secure-secret-key-here" > .env
-```
-
-### Token Validation Issues
-
-If you're getting token validation errors, ensure:
-1. The `SECRET` environment variable is set
-2. The secret is the same across server restarts
-3. The frontend is sending the token in the correct format: `Bearer <token>`
-
-## Development
-
-### Running with Docker
+## 🧪 Testing
 
 ```bash
-# Build Docker image
-make buildDocker
-
-# Run with environment file
-make runDocker
-```
-
-### Testing
-
-```bash
-# Run tests
 go test ./...
-
-# Run with coverage
 go test -cover ./...
 ```
 
-## Security Notes
+---
 
-- **Never commit the actual SECRET value** to version control
-- Use a strong, random secret in production
-- Consider using environment-specific secrets
-- Rotate secrets periodically in production
+## 🐳 Docker Support
 
-## License
+```bash
+make buildDocker
+make runDocker
+```
 
-This project is licensed under the MIT License. 
+---
+
+## 📌 Notes
+
+- Ensure `SECRET` is set in your environment before running — it’s required for token signing.  
+- Keep your secrets out of version control (use `.env`).  
+- Use strong, environment-specific secrets in production.
