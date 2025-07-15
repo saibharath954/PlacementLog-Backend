@@ -3,7 +3,8 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS placement_log_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) UNIQUE NOT NULL,
+    regno VARCHAR(20) UNIQUE NOT NULL, -- Registration number (e.g., 22bcs1234)
+    username VARCHAR(255) NOT NULL,    -- User's name (not unique)
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

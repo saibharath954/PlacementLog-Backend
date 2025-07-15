@@ -17,7 +17,13 @@ type UserAuthHandler struct {
 /*
 requestPayload represents the JSON payload for login and registration requests.
 */
-type requestPayload struct {
+type loginRequestPayload struct {
+	Regno    string `json:"regno"`
+	Password string `json:"password"`
+}
+
+type registerRequestPayload struct {
+	Regno    string `json:"regno"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -27,6 +33,7 @@ responsePayload represents the JSON response for successful authentication.
 */
 type responsePayload struct {
 	UserID   string `json:"userid"`
+	Regno    string `json:"regno"`
 	Username string `json:"username"`
 	Token    string `json:"token"`
 }
@@ -48,7 +55,7 @@ func NewUserAuthHandler(srv *UserAuthService) *UserAuthHandler {
 
 /*
 Login handles user login requests.
-Validates user credentials and returns a JWT token upon successful authentication.
+Now expects regno and password.
 
 HTTP Method: POST
 Endpoint: /auth/login
@@ -56,14 +63,16 @@ Endpoint: /auth/login
 Request Body:
 
 	{
-	  "username": "22bcs1234",
+	  "regno": "22bcs1234",
 	  "password": "password123"
 	}
 
 Response (200 OK):
 
 	{
-	  "username": "user_id",
+	  "userid": "user_id",
+	  "regno": "22bcs1234",
+	  "name": "",
 	  "token": "jwt_token_here"
 	}
 
@@ -73,22 +82,23 @@ Returns:
 - 401 Unauthorized: Invalid credentials
 */
 func (h *UserAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var payload requestPayload
+	var payload loginRequestPayload
 
 	if err := utils.ReadJSON(r, &payload); err != nil {
 		utils.WriteError(w, err)
 		return
 	}
 
-	token, userId, err := h.srv.Login(payload.Username, payload.Password)
+	token, user, err := h.srv.Login(payload.Regno, payload.Password)
 	if err != nil {
 		utils.WriteError(w, err)
 		return
 	}
 
 	resp := responsePayload{
-		UserID:   userId,
-		Username: payload.Username,
+		UserID:   user.ID,
+		Regno:    user.Regno,
+		Username: user.Username,
 		Token:    token,
 	}
 
@@ -97,7 +107,7 @@ func (h *UserAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 /*
 Register handles user registration requests.
-Creates a new user account and returns a JWT token upon successful registration.
+Now expects regno, name, and password.
 
 HTTP Method: POST
 Endpoint: /auth/register
@@ -105,14 +115,17 @@ Endpoint: /auth/register
 Request Body:
 
 	{
-	  "username": "22bcs1234",
+	  "regno": "22bcs1234",
+	  "name": "John Doe",
 	  "password": "password123"
 	}
 
 Response (201 Created):
 
 	{
-	  "username": "user_id",
+	  "userid": "user_id",
+	  "regno": "22bcs1234",
+	  "name": "John Doe",
 	  "token": "jwt_token_here"
 	}
 
@@ -122,14 +135,14 @@ Returns:
 - 409 Conflict: Username already exists
 */
 func (h *UserAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var payload requestPayload
+	var payload registerRequestPayload
 
 	if err := utils.ReadJSON(r, &payload); err != nil {
 		utils.WriteError(w, err)
 		return
 	}
 
-	token, userId, err := h.srv.Register(payload.Username, payload.Password)
+	token, userId, err := h.srv.Register(payload.Regno, payload.Username, payload.Password)
 	if err != nil {
 		utils.WriteError(w, err)
 		return
@@ -137,6 +150,7 @@ func (h *UserAuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	resp := responsePayload{
 		UserID:   userId,
+		Regno:    payload.Regno,
 		Username: payload.Username,
 		Token:    token,
 	}

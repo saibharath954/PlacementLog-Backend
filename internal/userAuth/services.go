@@ -3,6 +3,7 @@ package userauth
 import (
 	"fmt"
 
+	"github.com/varnit-ta/PlacementLog/internal/db"
 	"github.com/varnit-ta/PlacementLog/pkg/jwt"
 )
 
@@ -46,20 +47,20 @@ The function:
 2. Generates a JWT token with "user" role
 3. Returns the token and user ID upon successful authentication
 */
-func (s *UserAuthService) Login(username, password string) (string, string, error) {
-	user, err := s.repo.Login(username, password)
+func (s *UserAuthService) Login(regno, password string) (string, *db.User, error) {
+	user, err := s.repo.Login(regno, password)
 
 	if err != nil {
-		return "", "", fmt.Errorf("login failed: %w", err)
+		return "", nil, fmt.Errorf("login failed: %w", err)
 	}
 
 	token, err := jwt.GenerateJwtToken(user.ID, "user")
 
 	if err != nil {
-		return "", "", fmt.Errorf("failed to generate token: %w", err)
+		return "", nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	return token, user.ID, nil
+	return token, user, nil
 }
 
 /*
@@ -81,8 +82,8 @@ The function:
 4. Generates a JWT token with "user" role
 5. Returns the token and user ID upon successful registration
 */
-func (s *UserAuthService) Register(username, password string) (string, string, error) {
-	user, err := s.repo.Register(username, password)
+func (s *UserAuthService) Register(regno, name, password string) (string, string, error) {
+	user, err := s.repo.Register(regno, name, password)
 
 	if err != nil {
 		return "", "", fmt.Errorf("registration failed: %w", err)

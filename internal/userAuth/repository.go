@@ -56,30 +56,32 @@ Possible errors:
 - "no such user exists": User not found in database
 - "incorrect password": Password doesn't match
 */
-func (repo UserAuthRepo) Login(username, pass string) (*db.User, error) {
-	if username == "" || pass == "" {
+func (repo UserAuthRepo) Login(regno, pass string) (*db.User, error) {
+	if regno == "" || pass == "" {
 		return nil, fmt.Errorf("all fields are required")
 	}
 
 	re := regexp.MustCompile(`^\d{2}[a-z]{3}\d{4}$`)
 
-	if !re.MatchString(username) {
+	if !re.MatchString(regno) {
 		return nil, fmt.Errorf("not a valid registration number")
 	}
 
 	queryString := `
-		SELECT id, username, password
+		SELECT id, regno, password, created_at, username
 		FROM placement_log_users
-		WHERE username=$1;
+		WHERE regno=$1;
 	`
 
 	var user db.User
 	var hashedPass string
 
-	err := repo.db.QueryRow(queryString, username).Scan(
+	err := repo.db.QueryRow(queryString, regno).Scan(
 		&user.ID,
-		&user.Username,
+		&user.Regno,
 		&hashedPass,
+		&user.CreatedAt,
+		&user.Username,
 	)
 
 	if err == sql.ErrNoRows {
@@ -121,14 +123,14 @@ Possible errors:
 - "error hashing pass": Password hashing failed
 - "failed to insert user": Database insertion failed
 */
-func (repo UserAuthRepo) Register(username, pass string) (*db.User, error) {
-	if username == "" || pass == "" {
+func (repo UserAuthRepo) Register(regno, username, pass string) (*db.User, error) {
+	if regno == "" || username == "" || pass == "" {
 		return nil, fmt.Errorf("all fields are required")
 	}
 
 	re := regexp.MustCompile(`^\d{2}[a-z]{3}\d{4}$`)
 
-	if !re.MatchString(username) {
+	if !re.MatchString(regno) {
 		return nil, fmt.Errorf("not a valid registration number")
 	}
 
@@ -139,14 +141,19 @@ func (repo UserAuthRepo) Register(username, pass string) (*db.User, error) {
 	}
 
 	queryString := `
-		INSERT INTO placement_log_users (username, password)
-		VALUES ($1, $2)
-		RETURNING id;
+		INSERT INTO placement_log_users (regno, password, username)
+		VALUES ($1, $2, $3)
+		RETURNING id, regno, created_at, username;
 	`
 
-	var userId string
+	var user db.User
 
-	err = repo.db.QueryRow(queryString, username, hashedPass).Scan(&userId)
+	err = repo.db.QueryRow(queryString, regno, hashedPass, username).Scan(
+		&user.ID,
+		&user.Regno,
+		&user.CreatedAt,
+		&user.Username,
+	)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -155,8 +162,5 @@ func (repo UserAuthRepo) Register(username, pass string) (*db.User, error) {
 		return nil, fmt.Errorf("failed to insert user: %v", err)
 	}
 
-	return &db.User{
-		ID:       userId,
-		Username: username,
-	}, nil
+	return &user, nil
 }

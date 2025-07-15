@@ -7,8 +7,10 @@ User represents a user in the system.
 Contains basic user information for authentication and identification.
 */
 type User struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
+	ID        string `json:"id"`
+	Regno     string `json:"regno"`
+	CreatedAt string `json:"created_at"`
+	Username  string `json:"username"`
 }
 
 /*
