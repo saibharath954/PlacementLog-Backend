@@ -7,15 +7,17 @@ import (
 	"github.com/go-chi/cors"
 	adminauth "github.com/varnit-ta/PlacementLog/internal/adminAuth"
 	"github.com/varnit-ta/PlacementLog/internal/db"
+	placements "github.com/varnit-ta/PlacementLog/internal/placements"
 	"github.com/varnit-ta/PlacementLog/internal/posts"
 	userauth "github.com/varnit-ta/PlacementLog/internal/userAuth"
 	"github.com/varnit-ta/PlacementLog/pkg/middleware"
 )
 
 type App struct {
-	userAuthHandler *userauth.UserAuthHandler
-	postHandler     *posts.PostsHandler
-	adminHandler    *adminauth.AdminAuthHandler
+	userAuthHandler   *userauth.UserAuthHandler
+	postHandler       *posts.PostsHandler
+	adminHandler      *adminauth.AdminAuthHandler
+	placementsHandler *placements.PlacementsHandler
 }
 
 func InitApp() (*App, error) {
@@ -37,10 +39,15 @@ func InitApp() (*App, error) {
 	adminService := adminauth.NewAdminService(adminRepo)
 	adminHandler := adminauth.NewAdminAuthHandler(adminService)
 
+	placementsRepo := placements.NewPlacementsRepo(db)
+	placementsService := placements.NewPlacementsService(placementsRepo)
+	placementsHandler := placements.NewPlacementsHandler(placementsService)
+
 	return &App{
-		userAuthHandler: userAuthHandler,
-		postHandler:     postHandler,
-		adminHandler:    adminHandler,
+		userAuthHandler:   userAuthHandler,
+		postHandler:       postHandler,
+		adminHandler:      adminHandler,
+		placementsHandler: placementsHandler,
 	}, nil
 }
 
@@ -61,6 +68,8 @@ func (a App) Routes() http.Handler {
 		r.Post("/auth/login", a.userAuthHandler.Login)
 		r.Post("/auth/register", a.userAuthHandler.Register)
 		r.Post("/admin/login", a.adminHandler.Login)
+		r.Get("/placements", a.placementsHandler.GetAllPlacements)
+		r.Get("/posts", a.postHandler.GetAll)
 	})
 
 	// User authenticated routes
@@ -74,11 +83,6 @@ func (a App) Routes() http.Handler {
 		r.Get("/posts/user", a.postHandler.GetByUser)
 	})
 
-	// Public routes for viewing approved posts
-	r.Group(func(r chi.Router) {
-		r.Get("/posts", a.postHandler.GetAll)
-	})
-
 	// Admin authenticated routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AdminAuthMiddleware)
@@ -88,6 +92,7 @@ func (a App) Routes() http.Handler {
 		r.Get("/admin/posts", a.postHandler.GetAllPostsForAdmin)
 		r.Put("/admin/posts/review", a.postHandler.ReviewPost)
 		r.Delete("/admin/posts", a.postHandler.DeletePostAsAdmin)
+		r.Post("/admin/placements", a.placementsHandler.AddPlacement)
 	})
 
 	return r

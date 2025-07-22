@@ -29,6 +29,23 @@ CREATE TABLE IF NOT EXISTS placement_log_posts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Placement Companies Table
+CREATE TABLE IF NOT EXISTS placement_companies (
+    id SERIAL PRIMARY KEY,
+    company VARCHAR(100) NOT NULL,
+    ctc DECIMAL(10,2) NOT NULL,
+    placement_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Placement Branchwise Record Table
+CREATE TABLE IF NOT EXISTS placement_branchwise_record (
+    id SERIAL PRIMARY KEY,
+    placement_id INT NOT NULL REFERENCES placement_companies(id) ON DELETE CASCADE,
+    branch VARCHAR(10) NOT NULL,
+    count INT NOT NULL
+);
+
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON placement_log_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_reviewed ON placement_log_posts(reviewed);
