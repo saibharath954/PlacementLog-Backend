@@ -53,3 +53,23 @@ func (h *PlacementsHandler) GetAllPlacements(w http.ResponseWriter, r *http.Requ
 	}
 	utils.WriteJSON(w, placementsList, http.StatusOK)
 }
+
+// GET /placements/company-branch (public)
+func (h *PlacementsHandler) GetCompanyBranchMap(w http.ResponseWriter, r *http.Request) {
+	result, err := h.srv.GetCompanyBranchMap()
+	if err != nil {
+		utils.WriteError(w, err)
+		return
+	}
+	utils.WriteJSON(w, result, http.StatusOK)
+}
+
+// GET /placements/branch-company (public)
+func (h *PlacementsHandler) GetBranchCompanyMap(w http.ResponseWriter, r *http.Request) {
+	result, err := h.srv.GetBranchCompanyMap()
+	if err != nil {
+		utils.WriteError(w, err)
+		return
+	}
+	utils.WriteJSON(w, result, http.StatusOK)
+}

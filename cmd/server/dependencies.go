@@ -69,6 +69,8 @@ func (a App) Routes() http.Handler {
 		r.Post("/auth/register", a.userAuthHandler.Register)
 		r.Post("/admin/login", a.adminHandler.Login)
 		r.Get("/placements", a.placementsHandler.GetAllPlacements)
+		r.Get("/placements/company-branch", a.placementsHandler.GetCompanyBranchMap)
+		r.Get("/placements/branch-company", a.placementsHandler.GetBranchCompanyMap)
 		r.Get("/posts", a.postHandler.GetAll)
 	})
 

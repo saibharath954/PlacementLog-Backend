@@ -66,3 +66,76 @@ func (r *PlacementsRepo) GetAllPlacements() ([]PlacementCompany, error) {
 	}
 	return placements, nil
 }
+
+type CompanyBranch struct {
+	Company  string        `json:"company"`
+	Branches []BranchCount `json:"branches"`
+}
+
+type BranchCompany struct {
+	Branch    string         `json:"branch"`
+	Companies []CompanyCount `json:"companies"`
+}
+
+type CompanyCount struct {
+	Company string `json:"company"`
+	Count   int    `json:"count"`
+}
+
+func (r *PlacementsRepo) GetCompanyBranchMap() ([]CompanyBranch, error) {
+	rows, err := r.db.Query(`
+		SELECT pc.company, pbr.branch, SUM(pbr.count) as total
+		FROM placement_companies pc
+		JOIN placement_branchwise_record pbr ON pc.id = pbr.placement_id
+		GROUP BY pc.company, pbr.branch
+		ORDER BY pc.company, pbr.branch
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	companyMap := make(map[string][]BranchCount)
+	for rows.Next() {
+		var company, branch string
+		var count int
+		if err := rows.Scan(&company, &branch, &count); err != nil {
+			return nil, err
+		}
+		companyMap[company] = append(companyMap[company], BranchCount{Branch: branch, Count: count})
+	}
+	var result []CompanyBranch
+	for company, branches := range companyMap {
+		result = append(result, CompanyBranch{Company: company, Branches: branches})
+	}
+	return result, nil
+}
+
+func (r *PlacementsRepo) GetBranchCompanyMap() ([]BranchCompany, error) {
+	rows, err := r.db.Query(`
+		SELECT pbr.branch, pc.company, SUM(pbr.count) as total
+		FROM placement_companies pc
+		JOIN placement_branchwise_record pbr ON pc.id = pbr.placement_id
+		GROUP BY pbr.branch, pc.company
+		ORDER BY pbr.branch, pc.company
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	branchMap := make(map[string][]CompanyCount)
+	for rows.Next() {
+		var branch, company string
+		var count int
+		if err := rows.Scan(&branch, &company, &count); err != nil {
+			return nil, err
+		}
+		branchMap[branch] = append(branchMap[branch], CompanyCount{Company: company, Count: count})
+	}
+	var result []BranchCompany
+	for branch, companies := range branchMap {
+		result = append(result, BranchCompany{Branch: branch, Companies: companies})
+	}
+	return result, nil
+}

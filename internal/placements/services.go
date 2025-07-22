@@ -75,3 +75,11 @@ func (s *PlacementsService) AddPlacement(req PlacementRequest) (PlacementRespons
 func (s *PlacementsService) GetAllPlacements() ([]PlacementCompany, error) {
 	return s.repo.GetAllPlacements()
 }
+
+func (s *PlacementsService) GetCompanyBranchMap() ([]CompanyBranch, error) {
+	return s.repo.GetCompanyBranchMap()
+}
+
+func (s *PlacementsService) GetBranchCompanyMap() ([]BranchCompany, error) {
+	return s.repo.GetBranchCompanyMap()
+}
