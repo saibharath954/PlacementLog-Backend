@@ -128,9 +128,6 @@ func (repo UserAuthRepo) Register(regno, username, pass string) (*db.User, error
 		return nil, fmt.Errorf("all fields are required")
 	}
 
-	// Convert the input to lowercase BEFORE validation
-	regno = strings.ToLower(regno)
-
 	re := regexp.MustCompile(`^\d{2}[a-z]{3}\d{4}$`)
 
 	if !re.MatchString(regno) {
