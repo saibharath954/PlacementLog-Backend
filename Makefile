@@ -13,3 +13,8 @@ buildDocker:
 
 runDocker:
 	docker run -p 8080:8080 --name $(CONTAINER_NAME) -v "$(shell pwd)/.env":/app/.env $(IMAGE_NAME):$(IMAGE_TAG)
+
+.PHONY: test
+
+test:
+	go test ./...

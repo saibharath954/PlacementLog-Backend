@@ -164,3 +164,6 @@ func (repo UserAuthRepo) Register(regno, username, pass string) (*db.User, error
 
 	return &user, nil
 }
+
+// Ensure UserAuthRepo implements UserAuthRepository
+var _ UserAuthRepository = (*UserAuthRepo)(nil)

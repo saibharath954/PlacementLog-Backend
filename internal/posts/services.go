@@ -7,13 +7,27 @@ import (
 	"github.com/varnit-ta/PlacementLog/internal/db"
 )
 
+// Define PostsRepository interface for testability
+//go:generate mockgen -destination=mock_posts_repo.go -package=posts . PostsRepository
+
+type PostsRepository interface {
+	AddPost(userId string, postBody json.RawMessage) (*db.Post, error)
+	UpdatePost(postId, userId string, postBody json.RawMessage) (*db.Post, error)
+	DeletePost(postId, userId string) error
+	DeletePostAsAdmin(postId string) error
+	GetAllPosts() ([]db.Post, error)
+	GetAllPostsForAdmin() ([]db.Post, error)
+	GetPostsByUserId(userId string) ([]db.Post, error)
+	ReviewPost(postId, action string) error
+}
+
 /*
 PostsService handles post-related business logic.
 Provides methods for creating, reading, updating, and deleting posts.
 Includes both user and admin-specific operations.
 */
 type PostsService struct {
-	repo *PostsRepo
+	repo PostsRepository
 }
 
 /*
@@ -25,7 +39,7 @@ Parameters:
 Returns:
 - *PostsService: A new service instance
 */
-func NewPostsService(repo *PostsRepo) *PostsService {
+func NewPostsService(repo PostsRepository) *PostsService {
 	return &PostsService{repo: repo}
 }
 

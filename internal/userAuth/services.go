@@ -7,12 +7,20 @@ import (
 	"github.com/varnit-ta/PlacementLog/pkg/jwt"
 )
 
+// Define UserAuthRepository interface for testability
+//go:generate mockgen -destination=mock_userauth_repo.go -package=userauth . UserAuthRepository
+
+type UserAuthRepository interface {
+	Login(regno, pass string) (*db.User, error)
+	Register(regno, username, pass string) (*db.User, error)
+}
+
 /*
 UserAuthService handles user authentication business logic.
 Provides methods for user login and registration with JWT token generation.
 */
 type UserAuthService struct {
-	repo *UserAuthRepo
+	repo UserAuthRepository
 }
 
 /*
@@ -24,10 +32,8 @@ Parameters:
 Returns:
 - *UserAuthService: A new service instance
 */
-func NewUserAuthService(repo *UserAuthRepo) *UserAuthService {
-	return &UserAuthService{
-		repo: repo,
-	}
+func NewUserAuthService(repo UserAuthRepository) *UserAuthService {
+	return &UserAuthService{repo: repo}
 }
 
 /*

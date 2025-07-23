@@ -139,3 +139,6 @@ func (r *PlacementsRepo) GetBranchCompanyMap() ([]BranchCompany, error) {
 	}
 	return result, nil
 }
+
+// Ensure PlacementsRepo implements PlacementsRepository
+var _ PlacementsRepository = (*PlacementsRepo)(nil)

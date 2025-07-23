@@ -41,11 +41,22 @@ func CountBranches(regNos []string) []BranchCount {
 	return branchCounts
 }
 
-type PlacementsService struct {
-	repo *PlacementsRepo
+// Define PlacementsRepository interface for testability
+//go:generate mockgen -destination=mock_placements_repo.go -package=placements . PlacementsRepository
+
+type PlacementsRepository interface {
+	InsertPlacementCompany(company string, ctc float64, placementDate string) (int, error)
+	InsertBranchwiseRecords(placementID int, branchCounts []BranchCount) error
+	GetAllPlacements() ([]PlacementCompany, error)
+	GetCompanyBranchMap() ([]CompanyBranch, error)
+	GetBranchCompanyMap() ([]BranchCompany, error)
 }
 
-func NewPlacementsService(repo *PlacementsRepo) *PlacementsService {
+type PlacementsService struct {
+	repo PlacementsRepository
+}
+
+func NewPlacementsService(repo PlacementsRepository) *PlacementsService {
 	return &PlacementsService{repo: repo}
 }
 

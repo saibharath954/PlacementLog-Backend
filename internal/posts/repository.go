@@ -415,3 +415,6 @@ func (repo PostsRepo) ReviewPost(postId string, action string) error {
 
 	return nil
 }
+
+// Ensure PostsRepo implements PostsRepository
+var _ PostsRepository = (*PostsRepo)(nil)
